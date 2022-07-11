@@ -1,4 +1,4 @@
-import { createElement } from '../helpers/domHelper.mjs';
+import {addClass, createElement, removeClass} from '../helpers/domHelper.mjs';
 
 const appendRoomElement = ({ name, numberOfUsers, onJoin = () => {} }) => {
 	const roomsContainer = document.querySelector('#rooms-wrapper');
@@ -47,6 +47,25 @@ const updateNumberOfUsersInRoom = ({ name, numberOfUsers }) => {
 
 const getNumberOfUsersString = numberOfUsers => `${numberOfUsers} connected`;
 
+
+const displayRoomList = () => {
+	const gamePage = document.getElementById('game-page');
+	addClass(gamePage,'display-none');
+	const roomContainer = document.getElementById('rooms-page');
+	removeClass(roomContainer, 'display-none')
+}
+
+const displayGameRoom = (roomName) => {
+	const gamePage = document.getElementById('game-page');
+	removeClass(gamePage,'display-none');
+	const roomContainer = document.getElementById('rooms-page');
+	addClass(roomContainer,'display-none');
+	const roomNameElement = document.getElementById('room-name');
+	roomNameElement.innerText = roomName;
+
+}
+
+
 const removeRoomElement = name => document.querySelector(`.room[data-room-name='${name}']`)?.remove();
 
-export { appendRoomElement, updateNumberOfUsersInRoom, removeRoomElement };
+export { appendRoomElement, updateNumberOfUsersInRoom, removeRoomElement, displayRoomList, displayGameRoom};
