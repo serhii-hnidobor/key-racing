@@ -68,7 +68,12 @@
   height: 100%;
   background-color:green;
 }
-
+.typped {
+  background-color: green;
+}
+.nextType{
+  text-decoration: green solid underline;
+}
 .finished {
   background-color:greenyellow !important;
 }
