@@ -58,6 +58,14 @@ export default (io: Server) => {
           room.timerId = null;
           game_over(room, io);
         }
+        if (room.roomUser.length === 0) {
+          const roomIndex = getRoomIndex(room);
+          if (room.timerId) {
+            clearInterval(room.timerId);
+          }
+          rooms.splice(roomIndex, 1);
+          io.emit("DELETE_ROOM", getEmitRoomValue(room));
+        }
         return;
       } else if (room && room.timerId === null) {
         io.to(room.roomName).emit("USER_LEAVE", getUserBySocket(socket));
