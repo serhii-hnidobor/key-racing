@@ -1,5 +1,6 @@
 import { roomSocketEventInit } from "./room.mjs";
 import { showMessageModal } from "./views/modal.mjs";
+import { gameLogicSocketEventInit } from "./game-logic.mjs";
 
 const username = sessionStorage.getItem("username");
 
@@ -21,3 +22,4 @@ socket.on("CONNECT_ERROR", () => {
 });
 
 roomSocketEventInit(socket, username);
+gameLogicSocketEventInit(socket, username);
