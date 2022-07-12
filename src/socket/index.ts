@@ -44,21 +44,24 @@ export default (io: Server) => {
         deleteUserFromRoom(room, socket);
         if (room.roomUser.length === 0) {
           const roomIndex = getRoomIndex(room);
+          if (room.timerId) {
+            clearInterval(room.timerId);
+          }
           rooms.splice(roomIndex, 1);
           io.emit("DELETE_ROOM", getEmitRoomValue(room));
-        } else {
-          io.emit("UPDATE_ROOM_USER_NUM", getEmitRoomValue(room));
         }
+        io.emit("ROOM_INIT", getEmitRoomInitValue());
       }
       const userInAllUserNameIndex = allUserNames.findIndex(
         (user) => user === username
       );
       allUserNames.splice(userInAllUserNameIndex, 1);
     };
+
     socket.on("disconnect", () => {
       onUserExit();
     });
-    //-----------------------------------------
+
     socket.on("JOIN_ROOM", (roomName: string): void => {
       const room = findRoomByName(roomName);
       if (
@@ -81,7 +84,7 @@ export default (io: Server) => {
 
       socket.join(roomName);
       socket.emit("JOIN_SUCCESS", roomName);
-      io.emit("UPDATE_ROOM_USER_NUM", getEmitRoomValue(room));
+      io.emit("ROOM_INIT", getEmitRoomInitValue());
       io.to(roomName).emit(
         "NEW_USER_JOIN",
         currentRoomUsers[currentRoomUsers.length - 1]

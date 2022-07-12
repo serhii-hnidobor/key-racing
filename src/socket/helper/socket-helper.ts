@@ -1,6 +1,7 @@
 import { emittedRoomData, roomInterface, userInterface } from "../interfaces";
 import { rooms } from "../index";
 import { texts } from "../../data";
+import { MAXIMUM_USERS_FOR_ONE_ROOM } from "../config";
 
 function getRandomIntInclusive(min, max) {
   min = Math.ceil(min);
@@ -85,7 +86,10 @@ let allUserNames: string[] = [];
 const getEmitRoomInitValue = () => {
   const result: emittedRoomData[] = [];
   for (const room of rooms) {
-    if (room.timerId === null) {
+    if (
+      room.timerId === null &&
+      room.roomUser.length < MAXIMUM_USERS_FOR_ONE_ROOM
+    ) {
       result.push({
         roomName: room.roomName,
         numberOfUser: room.roomUser.length,
