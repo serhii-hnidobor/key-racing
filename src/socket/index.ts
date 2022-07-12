@@ -5,119 +5,26 @@ import {
   SECONDS_TIMER_BEFORE_START_GAME,
 } from "./config";
 import { texts } from "../data";
+import { roomInterface } from "./interfaces";
+import { game_over } from "./helper/game-logic-helper";
+import {
+  allUserNames,
+  checkGameStart,
+  deleteUserFromRoom,
+  findRoomByName,
+  generateRandomTextId,
+  getEmitRoomInitValue,
+  getEmitRoomValue,
+  getRoomIndex,
+  getUserBySocket,
+  getUserInRoomListIndex,
+  getUserRoom,
+  initAllUserTextMap,
+} from "./helper/socket-helper";
+import { gameLogicInit } from "./game-logic";
 
-function getRandomIntInclusive(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+export const rooms: roomInterface[] = [];
 
-const rooms: roomInterface[] = [];
-interface roomInterface {
-  roomName: string;
-  roomUser: userInterface[];
-  timerId: ReturnType<typeof setInterval> | null;
-  timerValue: number | null;
-  textId?: number;
-}
-interface emittedRoomData {
-  roomName: string;
-  numberOfUser: number;
-}
-interface textMap {
-  needType: string[];
-  typped: string[];
-}
-
-interface userInterface {
-  name: string;
-  id: string;
-  isReady: boolean;
-  textMap?: textMap;
-  progress: number;
-  place: number;
-}
-const initAllUserTextMap = (room: roomInterface, text: string): void => {
-  for (const user of room.roomUser) {
-    user.textMap = {
-      needType: text.split(""),
-      typped: [],
-    };
-  }
-};
-const checkGameStart = (room: roomInterface): boolean => {
-  if (room.roomUser.length > 1) {
-    for (const user of room.roomUser) {
-      if (!user.isReady) {
-        return false;
-      }
-    }
-    return true;
-  }
-  return false;
-};
-const getUserBySocket = (socket): null | userInterface => {
-  for (const room of rooms) {
-    const allRoomUser = room.roomUser;
-    const requiredUser = allRoomUser.find(
-      (curUser) => curUser.id === socket.id
-    );
-    if (requiredUser) {
-      return requiredUser;
-    }
-  }
-  return null;
-};
-const getUserRoom = (socket): roomInterface | null => {
-  for (const room of rooms) {
-    const roomUsers = room.roomUser;
-    const roomUser = roomUsers.find((user) => user.id === socket.id);
-    if (roomUser) {
-      return room;
-    }
-  }
-  return null;
-};
-const deleteUserFromRoom = (room: roomInterface, socket): void => {
-  room.roomUser = room.roomUser.filter((user) => {
-    return user.id !== socket.id;
-  });
-};
-const getUserInRoomListIndex = (room, userName) => {
-  const allRoomUser = room.roomUser;
-  return allRoomUser.findIndex((user) => user.name === userName);
-};
-const getRoomIndex = (room) => {
-  return rooms.findIndex((curRoom) => curRoom === room);
-};
-const findRoomByName = (roomName: string): roomInterface | null => {
-  for (const room of rooms) {
-    if (room.roomName === roomName) {
-      return room;
-    }
-  }
-  return null;
-};
-let allUserNames: string[] = [];
-const getEmitRoomInitValue = () => {
-  const result: emittedRoomData[] = [];
-  for (const room of rooms) {
-    result.push({
-      roomName: room.roomName,
-      numberOfUser: room.roomUser.length,
-    });
-  }
-  return result;
-};
-const getEmitRoomValue = (room): emittedRoomData | null => {
-  if (!room) {
-    return null;
-  }
-  return {
-    roomName: room.roomName,
-    numberOfUser: room.roomUser.length,
-  };
-};
 export default (io: Server) => {
   io.on("connection", (socket): void => {
     const username: string | null = socket.handshake.query.username as string;
@@ -126,7 +33,8 @@ export default (io: Server) => {
       socket.emit("CONNECT_ERROR");
       return;
     }
-
+    /* game logic*/
+    gameLogicInit(io, socket);
     socket.emit("ROOM_INIT", getEmitRoomInitValue());
     allUserNames.push(username);
     const onUserExit = () => {
@@ -196,7 +104,7 @@ export default (io: Server) => {
       if (this.timerValue === 0 && this.timerId) {
         clearInterval(this.timerId);
         this.timerId = null;
-        game_over(this);
+        game_over(this, io);
         return;
       }
       if (this.timerValue) {
@@ -253,132 +161,11 @@ export default (io: Server) => {
       io.emit("ADDED_ROOM", getEmitRoomValue(rooms[rooms.length - 1]));
     });
 
-    const generateRandomTextId = (): number => {
-      return getRandomIntInclusive(0, texts.length - 1);
-    };
     socket.on("QUIT_ROOM", (roomName) => {
       const currentRoom = rooms.find((room) => room.roomName === roomName);
       if (currentRoom) {
         onUserExit();
         socket.emit("ROOM_INIT", getEmitRoomInitValue());
-      }
-    });
-    /* game logic*/
-    const getAllUserPlaces = (room): number[] => {
-      const result: number[] = [];
-      for (const user of room.roomUser) {
-        if (user.place > 0) {
-          result.push(user.place);
-        }
-      }
-      return result;
-    };
-    const getUserByPlace = (room, place: number): userInterface | null => {
-      for (const user of room.roomUser) {
-        if (user.place === place) {
-          return user;
-        }
-      }
-      return null;
-    };
-    const getUserWithoutPlace = (room): userInterface[] => {
-      const result: userInterface[] = [];
-      for (const user of room.roomUser) {
-        if (user.place === 0) {
-          result.push(user);
-        }
-      }
-      return result;
-    };
-    const listUserNamesFromUserArray = (
-      userArray: userInterface[]
-    ): string[] => {
-      const result: string[] = [];
-      for (const user of userArray) {
-        result.push(user.name);
-      }
-      return result;
-    };
-    const allUserTyppedTextCheck = (room) => {
-      const userThatEndTypeText: userInterface[] = [];
-      for (const user of room.roomUser) {
-        if (user.textMap.needType.length === 0) {
-          userThatEndTypeText.push(user);
-        }
-      }
-      if (userThatEndTypeText.length === room.roomUser.length) {
-        clearInterval(room.timerId);
-        room.timerId = null;
-        game_over(room);
-      }
-    };
-    const resetUserReady = (room: roomInterface) => {
-      for (const user of room.roomUser) {
-        user.isReady = false;
-        user.place = 0;
-        user.progress = 0;
-      }
-      io.to(room.roomName).emit("ROOM_USER_INIT", room.roomUser);
-    };
-    const game_over = (room) => {
-      const winner_list: string[] = [];
-      const allPlaces = getAllUserPlaces(room);
-      if (allPlaces === room.roomUser) {
-        const userSortedByPlace = room.roomUser.sort(
-          (prevUser: userInterface, curUser: userInterface): number => {
-            return curUser.place - prevUser.place;
-          }
-        );
-        io.to(room.roomName).emit("GAME_OVER", userSortedByPlace);
-        resetUserReady(room);
-        return;
-      }
-      let i: number;
-      for (i = 1; i <= MAXIMUM_USERS_FOR_ONE_ROOM; i++) {
-        const userByPlace = getUserByPlace(room, i);
-        if (userByPlace) {
-          winner_list.push(userByPlace.name);
-        }
-      }
-      let userWithoutPlace = getUserWithoutPlace(room);
-      userWithoutPlace = userWithoutPlace.sort(
-        (prevUser: userInterface, curUser: userInterface): number => {
-          return curUser.progress - prevUser.progress;
-        }
-      );
-      winner_list.push(...listUserNamesFromUserArray(userWithoutPlace));
-      resetUserReady(room);
-      io.to(room.roomName).emit("GAME_OVER", winner_list);
-    };
-
-    const setUserPlace = (room, user) => {
-      const allUserPlace: number[] = getAllUserPlaces(room);
-      if (allUserPlace.length === 0) {
-        user.place = 1;
-        return;
-      }
-      user.place = Math.max(...allUserPlace) + 1;
-    };
-
-    socket.on("USER_KEY_PRESS", (keyValue: string) => {
-      const user = getUserBySocket(socket);
-      const room = getUserRoom(socket);
-      if (user && user.textMap) {
-        const userNeedType = user.textMap.needType;
-        if (keyValue == userNeedType[0] && room?.textId && room.timerId) {
-          const typpedSymbol = userNeedType.shift();
-          if (userNeedType.length == 0) {
-            setUserPlace(room, user);
-          }
-          user.textMap.typped.push(typpedSymbol as string);
-          user.progress =
-            100 -
-            ((userNeedType?.length as number) * 100) /
-              texts[room.textId].length;
-          socket.emit("UPDATE_TEXT", user.textMap);
-          io.to(room.roomName).emit("CHANGE_USER_PROGRESS", user);
-          allUserTyppedTextCheck(room);
-        }
       }
     });
   });
