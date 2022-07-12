@@ -11,7 +11,11 @@ import {
   removeRoomElement,
   updateNumberOfUsersInRoom,
 } from "./views/room.mjs";
-import { addClass, removeClass } from "./helpers/domHelper.mjs";
+import {
+  addClass,
+  prepareToNewGame,
+  removeClass,
+} from "./helpers/domHelper.mjs";
 
 const currentText = {
   textId: null,
@@ -48,6 +52,7 @@ const roomSocketEventInit = (socket, username) => {
   const quitRoom = () => {
     const roomNameElement = document.getElementById("room-name");
     socket.emit("QUIT_ROOM", roomNameElement.innerText);
+    prepareToNewGame();
     displayRoomList();
   };
 
