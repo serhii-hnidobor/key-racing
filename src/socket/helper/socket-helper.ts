@@ -85,10 +85,12 @@ let allUserNames: string[] = [];
 const getEmitRoomInitValue = () => {
   const result: emittedRoomData[] = [];
   for (const room of rooms) {
-    result.push({
-      roomName: room.roomName,
-      numberOfUser: room.roomUser.length,
-    });
+    if (room.timerId === null) {
+      result.push({
+        roomName: room.roomName,
+        numberOfUser: room.roomUser.length,
+      });
+    }
   }
   return result;
 };

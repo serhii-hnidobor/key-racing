@@ -105,7 +105,7 @@ const roomSocketEventInit = (socket, username) => {
   });
 
   socket.on("ROOM_INIT", (rooms) => {
-    console.log("rooms", rooms);
+    document.getElementById("rooms-wrapper").innerHTML = "";
     for (const room of rooms) {
       appendRoomElement({
         name: room.roomName,

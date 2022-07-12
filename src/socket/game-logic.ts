@@ -1,8 +1,8 @@
 import { texts } from "../data";
 import { getUserBySocket, getUserRoom } from "./helper/socket-helper";
 import {
-  setUserPlace,
   allUserTyppedTextCheck,
+  setUserPlace,
 } from "./helper/game-logic-helper";
 
 export const gameLogicInit = (io, socket) => {

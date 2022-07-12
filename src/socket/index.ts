@@ -46,13 +46,14 @@ export default (io: Server) => {
           const roomIndex = getRoomIndex(room);
           rooms.splice(roomIndex, 1);
           io.emit("DELETE_ROOM", getEmitRoomValue(room));
+        } else {
+          io.emit("UPDATE_ROOM_USER_NUM", getEmitRoomValue(room));
         }
       }
       const userInAllUserNameIndex = allUserNames.findIndex(
         (user) => user === username
       );
       allUserNames.splice(userInAllUserNameIndex, 1);
-      io.emit("UPDATE_ROOM_USER_NUM", getEmitRoomValue(room));
     };
     socket.on("disconnect", () => {
       onUserExit();
@@ -130,6 +131,7 @@ export default (io: Server) => {
           gameTimerController = gameTimerController.bind(room);
           initAllUserTextMap(room, texts[textId]);
           room.timerId = setInterval(preGameTimerController, 1000);
+          io.emit("ROOM_INIT", getEmitRoomInitValue());
         }
       }
     });

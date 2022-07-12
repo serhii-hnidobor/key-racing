@@ -1,5 +1,6 @@
 import { roomInterface, userInterface } from "../interfaces";
 import { MAXIMUM_USERS_FOR_ONE_ROOM } from "../config";
+import { getEmitRoomInitValue } from "./socket-helper";
 
 const getAllUserPlaces = (room): number[] => {
   const result: number[] = [];
@@ -53,6 +54,8 @@ const resetUserReady = (room: roomInterface, io) => {
     user.place = 0;
     user.progress = 0;
   }
+  room.timerId = null;
+  io.emit("ROOM_INIT", getEmitRoomInitValue());
   io.to(room.roomName).emit("ROOM_USER_INIT", room.roomUser);
 };
 const game_over = (room, io) => {
