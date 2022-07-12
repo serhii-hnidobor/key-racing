@@ -73,7 +73,6 @@ const roomSocketEventInit = (socket, username) => {
   });
 
   socket.on("NEW_USER_JOIN", (newUser) => {
-    console.log(newUser);
     appendUserElement({
       username: newUser.name,
       ready: newUser.isReady,
@@ -119,7 +118,6 @@ const roomSocketEventInit = (socket, username) => {
   });
 
   socket.on("USER_LEAVE", (userLeave) => {
-    console.log("USER", userLeave);
     removeUserElement(userLeave.name);
   });
 
