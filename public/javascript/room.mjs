@@ -67,7 +67,7 @@ const roomSocketEventInit = (socket, username) => {
   socket.on("ADDED_ROOM", (room) => {
     appendRoomElement({
       name: room.roomName,
-      numberOfUsers: room.roomUser.length,
+      numberOfUsers: room.numberOfUser,
       onJoin: onJoinRoom,
     });
   });
@@ -86,6 +86,8 @@ const roomSocketEventInit = (socket, username) => {
     });
   });
   socket.on("ROOM_USER_INIT", (userArray) => {
+    const userWrapper = document.getElementById("users-wrapper");
+    userWrapper.innerHTML = "";
     for (const user of userArray) {
       appendUserElement({
         username: user.name,
@@ -96,18 +98,18 @@ const roomSocketEventInit = (socket, username) => {
   });
 
   socket.on("UPDATE_ROOM_USER_NUM", (room) => {
-    console.log("update_ROOM_NUM", room);
     updateNumberOfUsersInRoom({
       name: room.roomName,
-      numberOfUsers: room.roomUser.length,
+      numberOfUsers: room.numberOfUser,
     });
   });
 
   socket.on("ROOM_INIT", (rooms) => {
+    console.log("rooms", rooms);
     for (const room of rooms) {
       appendRoomElement({
         name: room.roomName,
-        numberOfUsers: room.roomUser.length,
+        numberOfUsers: room.numberOfUser,
         onJoin: onJoinRoom,
       });
     }
@@ -117,6 +119,7 @@ const roomSocketEventInit = (socket, username) => {
   });
 
   socket.on("USER_LEAVE", (userLeave) => {
+    console.log("USER", userLeave);
     removeUserElement(userLeave.name);
   });
 
@@ -137,7 +140,8 @@ const roomSocketEventInit = (socket, username) => {
     removeClass(preGameTimer, "display-none");
     const readyBtn = document.getElementById("ready-btn");
     addClass(readyBtn, "display-none");
-
+    const backBtn = document.getElementById("quit-room-btn");
+    addClass(backBtn, "display-none");
     const text = await (await fetch(`game/texts/${textId}`)).json();
     currentText.text = text.text;
     currentText.textId = textId;
