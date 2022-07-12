@@ -73,6 +73,7 @@
 }
 .nextType{
   text-decoration: green solid underline;
+  width:100%;
 }
 .finished {
   background-color:greenyellow !important;
