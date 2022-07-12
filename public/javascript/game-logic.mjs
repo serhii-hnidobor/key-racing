@@ -1,4 +1,5 @@
 import {
+  addClass,
   getTyppedTextElement,
   prepareToNewGame,
   showGameElement,
@@ -28,6 +29,9 @@ const gameLogicSocketEventInit = (socket) => {
       `.user-progress[data-username="${name}"]`
     );
     userProgressElement.style.width = `${progress}%`;
+    if (progress >= 100) {
+      addClass(userProgressElement, "finished");
+    }
   });
   socket.on("GAME_OVER", (winner_list) => {
     document.removeEventListener("keypress", onKeyPressed);

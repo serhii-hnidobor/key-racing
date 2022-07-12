@@ -70,6 +70,12 @@ export const prepareToNewGame = () => {
   removeClass(quitBtn, "display-none");
   readyBtn.setAttribute("data-ready", "true");
   readyBtn.innerText = "ready";
+  const allUserProgressElement = Array.from(
+    document.querySelectorAll(".user-progress")
+  );
+  allUserProgressElement.forEach((progressElement) =>
+    removeClass(progressElement, "finished")
+  );
 };
 export const formatClassNames = (className) =>
   className.split(" ").filter(Boolean);
