@@ -5,7 +5,7 @@ import {
   SECONDS_TIMER_BEFORE_START_GAME,
 } from "./config";
 import { texts } from "../data";
-import { roomInterface } from "./interfaces";
+import { roomInterface, userInterface } from "./interfaces";
 import { game_over } from "./helper/game-logic-helper";
 import {
   allUserNames,
@@ -39,7 +39,27 @@ export default (io: Server) => {
     allUserNames.push(username);
     const onUserExit = () => {
       const room = getUserRoom(socket);
-      if (room) {
+      if (room && room.timerId !== null) {
+        io.to(room.roomName).emit("USER_LEAVE", getUserBySocket(socket));
+        deleteUserFromRoom(room, socket);
+        const userInAllUserNameIndex = allUserNames.findIndex(
+          (user) => user === username
+        );
+        allUserNames.splice(userInAllUserNameIndex, 1);
+        const userThatEndTypeText: userInterface[] = [];
+        /* check game over*/
+        for (const user of room.roomUser) {
+          if (user.textMap?.needType.length === 0) {
+            userThatEndTypeText.push(user);
+          }
+        }
+        if (userThatEndTypeText.length === room.roomUser.length) {
+          clearInterval(room.timerId);
+          room.timerId = null;
+          game_over(room, io);
+        }
+        return;
+      } else if (room && room.timerId === null) {
         io.to(room.roomName).emit("USER_LEAVE", getUserBySocket(socket));
         deleteUserFromRoom(room, socket);
         if (room.roomUser.length === 0) {
@@ -49,9 +69,14 @@ export default (io: Server) => {
           }
           rooms.splice(roomIndex, 1);
           io.emit("DELETE_ROOM", getEmitRoomValue(room));
+        } else {
+          if (checkGameStart(room)) {
+            gameStart(room);
+          }
         }
-        io.emit("ROOM_INIT", getEmitRoomInitValue());
       }
+
+      io.emit("ROOM_INIT", getEmitRoomInitValue());
       const userInAllUserNameIndex = allUserNames.findIndex(
         (user) => user === username
       );
@@ -116,6 +141,20 @@ export default (io: Server) => {
         io.to(this.roomName).emit("GAME_TIMER_CHANGE", this.timerValue);
       }
     };
+    const gameStart = (room) => {
+      const textId: number = generateRandomTextId();
+      io.to(room.roomName).emit("PRE_GAME_TIMER_START", {
+        timeToStart: SECONDS_TIMER_BEFORE_START_GAME,
+        textId: textId,
+      });
+      room.textId = textId;
+      room.timerValue = SECONDS_TIMER_BEFORE_START_GAME;
+      preGameTimerController = preGameTimerController.bind(room);
+      gameTimerController = gameTimerController.bind(room);
+      initAllUserTextMap(room, texts[textId]);
+      room.timerId = setInterval(preGameTimerController, 1000);
+      io.emit("ROOM_INIT", getEmitRoomInitValue());
+    };
     socket.on("USER_CHANGE_READY_STATUS", (isReady) => {
       const room = getUserRoom(socket);
       const userIndex = getUserInRoomListIndex(room, username);
@@ -123,18 +162,7 @@ export default (io: Server) => {
         room.roomUser[userIndex].isReady = isReady;
         io.to(room.roomName).emit("CHANGE_USER_READY", { username, isReady });
         if (checkGameStart(room)) {
-          const textId: number = generateRandomTextId();
-          io.to(room.roomName).emit("PRE_GAME_TIMER_START", {
-            timeToStart: SECONDS_TIMER_BEFORE_START_GAME,
-            textId: textId,
-          });
-          room.textId = textId;
-          room.timerValue = SECONDS_TIMER_BEFORE_START_GAME;
-          preGameTimerController = preGameTimerController.bind(room);
-          gameTimerController = gameTimerController.bind(room);
-          initAllUserTextMap(room, texts[textId]);
-          room.timerId = setInterval(preGameTimerController, 1000);
-          io.emit("ROOM_INIT", getEmitRoomInitValue());
+          gameStart(room);
         }
       }
     });
