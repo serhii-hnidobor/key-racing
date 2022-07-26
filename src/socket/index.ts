@@ -22,6 +22,9 @@ import {
   initAllUserTextMap,
 } from "./helper/socket-helper";
 import { gameLogicInit } from "./game-logic";
+import { EventObserver } from "./eventObserver";
+import { Commentator } from "./commentator/commentator";
+import { OBSERVER_EVENT_NAME } from "./observer_event_name.enum";
 
 export const rooms: roomInterface[] = [];
 
@@ -128,6 +131,7 @@ export default (io: Server) => {
       if (this.timerValue === 0 && this.timerId) {
         clearInterval(this.timerId);
         io.to(this.roomName).emit("GAME_START", SECONDS_FOR_GAME);
+        this.eventObserver.broadcast(null, OBSERVER_EVENT_NAME.GAME_START);
         this.timerValue = SECONDS_FOR_GAME;
         this.timerId = setInterval(gameTimerController, 1000);
         return;
@@ -141,12 +145,17 @@ export default (io: Server) => {
       if (this.timerValue === 0 && this.timerId) {
         clearInterval(this.timerId);
         this.timerId = null;
+        this.eventObserver.broadcast(null, OBSERVER_EVENT_NAME.GAME_END);
         game_over(this, io);
         return;
       }
       if (this.timerValue) {
         this.timerValue--;
         io.to(this.roomName).emit("GAME_TIMER_CHANGE", this.timerValue);
+        this.eventObserver.broadcast(
+          this.timerValue,
+          OBSERVER_EVENT_NAME.GAME_TIMER_CHANGE
+        );
       }
     };
     const gameStart = (room) => {
@@ -161,10 +170,17 @@ export default (io: Server) => {
       gameTimerController = gameTimerController.bind(room);
       initAllUserTextMap(room, texts[textId]);
       room.timerId = setInterval(preGameTimerController, 1000);
+      room.eventObserver.broadcast(
+        null,
+        OBSERVER_EVENT_NAME.PRE_GAME_TIMER_START
+      );
       io.emit("ROOM_INIT", getEmitRoomInitValue());
     };
     socket.on("USER_CHANGE_READY_STATUS", (isReady) => {
       const room = getUserRoom(socket);
+      if (!room) {
+        return;
+      }
       const userIndex = getUserInRoomListIndex(room, username);
       if (room) {
         room.roomUser[userIndex].isReady = isReady;
@@ -180,8 +196,9 @@ export default (io: Server) => {
         socket.emit("CREATE_ROOM_ERROR");
         return;
       }
+      const newEventObserver = new EventObserver();
 
-      rooms.push({
+      const newRoom: roomInterface = {
         roomName: roomId,
         roomUser: [
           {
@@ -194,7 +211,11 @@ export default (io: Server) => {
         ],
         timerId: null,
         timerValue: null,
-      });
+        eventObserver: newEventObserver,
+      };
+      const newCommentator = new Commentator(io, newRoom);
+      newRoom.commentator = newCommentator;
+      rooms.push(newRoom);
       socket.join(roomId);
       socket.emit("CREATE_ROOM_SUCCESS");
       const currentRoomUsers = rooms[rooms.length - 1].roomUser;
