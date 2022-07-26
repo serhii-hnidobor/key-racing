@@ -1,7 +1,8 @@
 import { OBSERVER_EVENT_NAME_TYPE } from "./observer_event_name.enum";
 
+//OBSERVATION PATTERN
 class EventObserver {
-  private observers;
+  private readonly observers;
 
   constructor() {
     this.observers = {};

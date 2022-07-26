@@ -21,10 +21,10 @@ import {
   getUserRoom,
   initAllUserTextMap,
 } from "./helper/socket-helper";
+import { FACTORY_ENUMS, OBSERVER_EVENT_NAME } from "./observer_event_name.enum";
 import { gameLogicInit } from "./game-logic";
 import { EventObserver } from "./eventObserver";
-import { Commentator } from "./commentator/commentator";
-import { OBSERVER_EVENT_NAME } from "./observer_event_name.enum";
+import { CommentatorFactory } from "./commentator/commentator";
 
 export const rooms: roomInterface[] = [];
 
@@ -75,9 +75,6 @@ export default (io: Server) => {
         deleteUserFromRoom(room, socket);
         if (room.roomUser.length === 0) {
           const roomIndex = getRoomIndex(room);
-          if (room.timerId) {
-            clearInterval(room.timerId);
-          }
           rooms.splice(roomIndex, 1);
           io.emit("DELETE_ROOM", getEmitRoomValue(room));
         } else {
@@ -213,8 +210,11 @@ export default (io: Server) => {
         timerValue: null,
         eventObserver: newEventObserver,
       };
-      const newCommentator = new Commentator(io, newRoom);
-      newRoom.commentator = newCommentator;
+      newRoom.commentator = new CommentatorFactory().facroty(
+        FACTORY_ENUMS.COMMENTATOR,
+        io,
+        newRoom
+      );
       rooms.push(newRoom);
       socket.join(roomId);
       socket.emit("CREATE_ROOM_SUCCESS");

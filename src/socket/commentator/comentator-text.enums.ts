@@ -7,10 +7,16 @@ const getUserPlaceString = _.curry((userName, userPlace) => {
   return `на ${userPlace}-му місці ${userName} гравець`;
 });
 
+export const cars = ["Ferrari", "Mercedes", "Ford", "Tesla", "Toyota", "Jeep"];
+
 //PURE FUNCTION CURRY
-const getUserPresent = _.curry((userName: string | null, number: number) => {
-  return `Під номером ${number} виступає ${userName};`;
-});
+const getUserPresent = _.curry(
+  (userName: string | null, number: number, userCar: string) => {
+    return `Під номером ${number} виступає ${
+      userName ? userName : "анонім"
+    } на своїй ${userCar};`;
+  }
+);
 
 //PURE HIGHT ORDER FUNCTION
 const getInformationAboutPlayer = _.curry(
@@ -45,9 +51,9 @@ const sortByPlacePlayer = (
 const getRandomJokeOrInterestingFact = (): string => {
   const isThisTimeJoke = Boolean(Math.floor(random(0, 1)));
   if (isThisTimeJoke) {
-    return _.sample(joke) as string;
+    return `А зараз анекдот \n ${_.sample(joke)}`;
   }
-  return _.sample(interestingFact) as string;
+  return `а ви знали що ${_.sample(interestingFact)}`;
 };
 
 //PURE FUNCTION
@@ -108,17 +114,18 @@ class CommentatorSpeech {
   }
 
   onStart() {
-    this.addSpeech("Отже матч починається.");
-    this.addSpeech("Нагадую коментувати цей матч Вам буду я, Ескейп Ентерови.");
+    this.addSpeech("Отже матч починається");
     this.addSpeech(
-      "я радий вас вітати зі словами Доброго Вам дня пані та панове!"
+      "Нагадую коментувати цей матч Вам буду я, Ескейп Ентерович, я радий вас вітати зі словами Доброго Вам дня пані та панове!"
     );
   }
 
-  onUserPresent(userNames: string[]) {
+  onUserPresent(users: userInterface[]) {
     const speech: string[] = [];
-    userNames.forEach((userName, index) => {
-      speech.push(getUserPresent(userName)(index + 1));
+    users.forEach((user, index) => {
+      const userName = user.name;
+      const userCar = user.car as string;
+      speech.push(getUserPresent(userName)(index + 1)(userCar));
     });
     this.addSpeech(speech.join("\n"));
   }

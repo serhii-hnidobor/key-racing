@@ -88,7 +88,6 @@ const gameLogicSocketEventInit = (socket) => {
     });
     let typedArray = [];
     socket.on("COMMENTATOR_SAYS", (commentator_remark) => {
-        console.log(commentator_remark)
         if (!commentator_remark) {
             return;
         }

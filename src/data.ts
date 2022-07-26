@@ -1,11 +1,11 @@
 export const texts = [
-  "Text for typing #1",
-  "Text for typing #2",
-  "Text for typing #3",
-  "Text for typing #4",
-  "Text for typing #5",
-  "Text for typing #6",
-  "Text for typing #7",
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut quis bibendum neque. In ipsum ligula, faucibus eu arcu et, bibendum posuere ligula. Sed et hendrerit libero, eu finibus urna. Nunc porta tellus interdum, porta diam in, ornare sem. Pellentesque mi orci, feugiat ut ex sed, mattis gravida arcu. Nulla faucibus.",
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut quis bibendum neque. In ipsum ligula, faucibus eu arcu et, bibendum posuere ligula. Sed et hendrerit libero, eu finibus urna. Nunc porta tellus interdum, porta diam in, ornare sem. Pellentesque mi orci, feugiat ut ex sed, mattis gravida arcu. Nulla faucibus. #2",
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut quis bibendum neque. In ipsum ligula, faucibus eu arcu et, bibendum posuere ligula. Sed et hendrerit libero, eu finibus urna. Nunc porta tellus interdum, porta diam in, ornare sem. Pellentesque mi orci, feugiat ut ex sed, mattis gravida arcu. Nulla faucibus. #3",
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut quis bibendum neque. In ipsum ligula, faucibus eu arcu et, bibendum posuere ligula. Sed et hendrerit libero, eu finibus urna. Nunc porta tellus interdum, porta diam in, ornare sem. Pellentesque mi orci, feugiat ut ex sed, mattis gravida arcu. Nulla faucibus. #4",
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut quis bibendum neque. In ipsum ligula, faucibus eu arcu et, bibendum posuere ligula. Sed et hendrerit libero, eu finibus urna. Nunc porta tellus interdum, porta diam in, ornare sem. Pellentesque mi orci, feugiat ut ex sed, mattis gravida arcu. Nulla faucibus. #5",
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut quis bibendum neque. In ipsum ligula, faucibus eu arcu et, bibendum posuere ligula. Sed et hendrerit libero, eu finibus urna. Nunc porta tellus interdum, porta diam in, ornare sem. Pellentesque mi orci, feugiat ut ex sed, mattis gravida arcu. Nulla faucibus.#6",
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut quis bibendum neque. In ipsum ligula, faucibus eu arcu et, bibendum posuere ligula. Sed et hendrerit libero, eu finibus urna. Nunc porta tellus interdum, porta diam in, ornare sem. Pellentesque mi orci, feugiat ut ex sed, mattis gravida arcu. Nulla faucibus. #7",
 ];
 
 export default { texts };
