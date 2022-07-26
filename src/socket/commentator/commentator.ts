@@ -1,5 +1,6 @@
 import { roomInterface, userInterface } from "../interfaces";
 import { OBSERVER_EVENT_NAME } from "../observer_event_name.enum";
+import { SECONDS_FOR_GAME } from "../config";
 import { CommentatorSpeech } from "./comentator-text.enums";
 
 // PURE FUNCTION
@@ -78,7 +79,6 @@ class Commentator {
   }
 
   exitGame() {
-    console.log("exit");
     this._speech.onGameEnd(this._room.roomUser);
     this.emitSpeech();
     this._timeFromLastMessage = -1;
@@ -95,7 +95,6 @@ class Commentator {
 
   mainLogic(currentTimeValue) {
     this._timeFromLastMessage--;
-    console.log(this._timeFromLastMessage);
     const userNearFinish = getPlayersPlayerOnNearFinish(
       this._room.roomUser,
       this._userOnFinishAlreadyDeclarated
@@ -113,6 +112,7 @@ class Commentator {
       this.emitSpeech();
       this._userOnFinishAlreadyDeclarated.push(...userNearFinish);
     } else if (finishedPlayer) {
+      finishedPlayer.finishedTime = SECONDS_FOR_GAME - currentTimeValue;
       this._speech.onPlayerFinished(
         finishedPlayer,
         this._finishedPlayer.length + 1
@@ -124,6 +124,14 @@ class Commentator {
       this._speech.onRandomFactOrJoke();
       this.emitSpeech();
     }
+  }
+}
+
+class proxyCommentatorLogger {
+  private CommentatorObj: Commentator;
+
+  constructor(commentator: Commentator) {
+    this.CommentatorObj = commentator;
   }
 }
 

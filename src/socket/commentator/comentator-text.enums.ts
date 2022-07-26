@@ -1,6 +1,7 @@
 import _, { random } from "lodash";
 import { userInterface } from "../interfaces";
 import { interestingFact, joke } from "./joke_and_interesting_fact";
+import { SECONDS_FOR_GAME } from "../config";
 
 const getUserPlaceString = _.curry((userName, userPlace) => {
   return `на ${userPlace}-му місці ${userName} гравець`;
@@ -39,12 +40,7 @@ const sortByPlacePlayer = (
 ): number => {
   return cur_player.progress - prev_player.progress;
 };
-//PURE FUNCTION
-const getRandomInt = (min, max) => {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-};
+
 //PURE FUCNTION
 const getRandomJokeOrInterestingFact = (): string => {
   const isThisTimeJoke = Boolean(Math.floor(random(0, 1)));
@@ -85,7 +81,9 @@ const getGameResultString = (players: userInterface[]): string => {
       return;
     }
     resultString.push(
-      `${place}-й - ${player.name} подолав дистанцію за ${player.finishedTime} секунд \n`
+      `${place}-й - ${player.name} подолав дистанцію за ${
+        player.finishedTime ? player.finishedTime : SECONDS_FOR_GAME
+      } секунд \n`
     );
   });
   return resultString.join("");
@@ -118,9 +116,11 @@ class CommentatorSpeech {
   }
 
   onUserPresent(userNames: string[]) {
+    const speech: string[] = [];
     userNames.forEach((userName, index) => {
-      this.addSpeech(getUserPresent(userName)(index));
+      speech.push(getUserPresent(userName)(index + 1));
     });
+    this.addSpeech(speech.join("\n"));
   }
 
   onRandomFactOrJoke() {
@@ -147,7 +147,6 @@ class CommentatorSpeech {
 
   onGameEnd(players: userInterface[]) {
     const speech = getGameResultString(players);
-    console.log(speech);
     this.addSpeech(speech);
   }
 
